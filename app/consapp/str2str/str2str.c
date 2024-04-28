@@ -109,6 +109,7 @@ static const char *help[]={
 " -b  str_no        relay back messages from output str to input str [no]",
 " -t  level         trace level [0]",
 " -fl file          log file [str2str.trace]",
+" -outstat file     output stderr to file",
 " -h                print help",
 };
 /* print help ----------------------------------------------------------------*/
@@ -214,7 +215,11 @@ int main(int argc, char **argv)
     int i,j,n=0,dispint=5000,trlevel=0,opts[]={10000,10000,2000,32768,10,0,30,0};
     int types[MAXSTR]={STR_FILE,STR_FILE},stat[MAXSTR]={0},log_stat[MAXSTR]={0};
     int byte[MAXSTR]={0},bps[MAXSTR]={0},fmts[MAXSTR]={0},sta=0;
-    
+
+    char path2file4output_status[2048];
+    uint8_t flag_outstat = 0;
+
+
     for (i=0;i<MAXSTR;i++) {
         paths[i]=s1[i];
         logs[i]=s2[i];
@@ -265,8 +270,13 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i],"-b"  )&&i+1<argc) opts[7]=atoi(argv[++i]);
         else if (!strcmp(argv[i],"-fl" )&&i+1<argc) logfile=argv[++i];
         else if (!strcmp(argv[i],"-t"  )&&i+1<argc) trlevel=atoi(argv[++i]);
+        else if (!strcmp(argv[i],"-outstat")) {
+            strcpy(path2file4output_status, argv[++i]);
+            flag_outstat = 1;
+            }
         else if (*argv[i]=='-') printhelp();
     }
+    
     if (n<=0) n=1; /* stdout */
     
     for (i=0;i<n;i++) {
@@ -333,6 +343,15 @@ int main(int argc, char **argv)
         fprintf(stderr,"%s [%s] %10d B %7d bps %s\n",
                 time_str(utc2gpst(timeget()),0),buff,byte[0],bps[0],strmsg);
         
+        /*output in file stream server status*/
+        if (flag_outstat == 1){
+            FILE *fp = fopen(path2file4output_status, "w");
+            char message[1024];
+            sprintf(message, "%s %10d %10d %s", time_str(utc2gpst(timeget()),0),byte[0],bps[0],strmsg);
+            fputs(message, fp);
+            fclose(fp);
+        }
+
         sleepms(dispint);
     }
     for (i=0;i<MAXSTR;i++) {
