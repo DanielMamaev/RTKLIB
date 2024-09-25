@@ -25,6 +25,14 @@ OPTION = -DENAGLO -DENAGAL -DENAQZS -DENACMP -DENAIRN -DTRACE -DNFREQ=5 -DNEXOBS
 LDLIBS  = -lm -lpthread -lwinmm -lws2_32
 ```
 
-
+3. Fix code in `str2str.c`
+```
+signal(SIGTERM,sigfunc);
+signal(SIGINT ,sigfunc);
+#ifdef __unix__
+signal(SIGHUP ,SIG_IGN);
+signal(SIGPIPE,SIG_IGN);
+#endif
+```
 3. Make sure that there are no files in the gcc folder except the makefile.
 4. Run `make`
